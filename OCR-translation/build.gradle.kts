@@ -82,9 +82,9 @@ fun jniLibAbiDir(abi: String) = File(jniLibsRootDir, abi)
 val shortCargoHome = "C:/cgo"
 val shortCargoTargetDir = "C:/ct"
 
-val ndkLlvmPrebuiltFw = "$ndkDir/toolchains/llvm/prebuilt/windows-x86_64".replace('\\', '/')
+val ndkLlvmPrebuiltFw = "$ndkDir/toolchains/llvm/prebuilt/linux-x86_64".replace('\\', '/')
 val ndkClangIncludeFw =
-    fileTree("$ndkDir/toolchains/llvm/prebuilt/windows-x86_64") {
+    fileTree("$ndkDir/toolchains/llvm/prebuilt/linux-x86_64") {
         include("lib/clang/*/include/stddef.h")
     }.files.firstOrNull()?.parent?.replace('\\', '/')
         ?: error("clang include dir not found under $ndkDir")
