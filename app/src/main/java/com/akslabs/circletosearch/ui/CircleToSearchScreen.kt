@@ -2157,20 +2157,20 @@ fun CircleToSearchScreen(
             // Close button for Copy Mode (Top Left)
 
             // Friendly Message Overlay (Top Center)
-            if (!isTranslatorMode) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .offset(y = 100.dp) // Offset to not cover potential top icons
-                        .zIndex(100f), // Ensure on top
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    FriendlyMessageBubble(
-                        message = friendlyMessage,
-                        visible = isMessageVisible
-                    )
-                }
-            }
+//             if (!isTranslatorMode) {
+//                 Box(
+//                     modifier = Modifier
+//                         .fillMaxSize()
+//                         .offset(y = 100.dp) // Offset to not cover potential top icons
+//                         .zIndex(100f), // Ensure on top
+//                     contentAlignment = Alignment.TopCenter
+//                 ) {
+//                     FriendlyMessageBubble(
+//                         message = friendlyMessage,
+//                         visible = isMessageVisible
+//                     )
+//                 }
+//             }
 
             // 1. Screenshot Layer
             if (screenshot != null) {
@@ -2947,235 +2947,235 @@ fun CircleToSearchScreen(
                         }
 
                         // ── ROW 2: Action buttons ───────────────────────────────
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 0.dp), // Maximize space for labels
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            @Composable
-                            fun BottomBarButton(
-                                label: String, 
-                                icon: @Composable () -> Unit, 
-                                enabled: Boolean = true,
-                                onClick: () -> Unit
-                            ) {
-                                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.BottomCenter) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        FilledTonalIconButton(
-                                            onClick = { 
-                                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                                onClick() 
-                                            },
-                                            enabled = enabled,
-                                            modifier = Modifier.size(48.dp),
-                                            colors = IconButtonDefaults.filledTonalIconButtonColors(
-                                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                                contentColor = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                                                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                                disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                            )
-                                        ) { icon() }
-                                        
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        
-                                        Text(
-                                            text = label, 
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                fontSize = 10.5.sp, 
-                                                lineHeight = 12.sp,
-                                                letterSpacing = (-0.4).sp,
-                                                fontWeight = FontWeight.Medium
-                                            ), 
-                                            color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f), 
-                                            textAlign = TextAlign.Center, 
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Visible,
-                                            modifier = Modifier.padding(horizontal = 0.dp)
-                                        )
-                                    }
-                                }
-                            }
-
-                            // Camera — open the translator module's live camera directly.
-                            // CLEAR_TASK so backing out of the camera returns here instead
-                            // of any module screen left over from a previous session.
-                            BottomBarButton(stringResource(R.string.label_camera), {
-                                Icon(painterResource(id = dev.davidv.translator.R.drawable.camera), null, modifier = Modifier.size(22.dp))
-                            }) {
-                                // Clear any lingering translator overlay windows so a
-                                // stale touchable result/select window can't intercept
-                                // taps inside the camera screen.
-                                CircleToSearchAccessibilityService.instance?.closeTranslateOverlay()
-                                // Return target: closing the image result re-launches this
-                                // overlay (the original capture stays in BitmapRepository —
-                                // CLEAR_TASK destroys the old instance without finishing it).
-                                val cameraIntent = android.content.Intent(context, dev.davidv.translator.MainActivity::class.java)
-                                    .putExtra(dev.davidv.translator.MainActivity.EXTRA_OPEN_LIVE_CAMERA, true)
-                                    .putExtra(
-                                        dev.davidv.translator.MainActivity.EXTRA_CALLER_COMPONENT,
-                                        android.content.ComponentName(context, com.akslabs.circletosearch.OverlayActivity::class.java),
-                                    )
-                                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                                runCatching {
-                                    context.startActivity(cameraIntent)
-                                }.onFailure {
-                                    android.widget.Toast.makeText(context, context.getString(R.string.toast_translate_unavailable), android.widget.Toast.LENGTH_SHORT).show()
-                                }
-                            }
-
-                            // More Apps
-//                            BottomBarButton("More Apps", { Icon(Icons.Default.Apps, null) }) {
-//                                showMoreAppsSheet = true
-//                            }
-
-                            // Pin
-//                            val isPinEnabled = selectedBitmap != null
-//                            BottomBarButton(
-//                                label = "Pin",
-//                                icon = { Icon(Icons.Default.PushPin, contentDescription = null, modifier = Modifier.size(22.dp)) },
-//                                enabled = isPinEnabled
-//                            ) {
-//                                selectedBitmap?.let { bmp ->
-//                                    CircleToSearchAccessibilityService.pinArea(bmp, selectionRect ?: android.graphics.Rect())
-//                                    (context as? android.app.Activity)?.finish()
-//                                }
-//                            }
-
-                            // Smart Entity Extractor — instant OCR over the screenshot using
-                            // the translator module's recognition (no Tesseract, no re-OCR).
-                            // COMMENTED OUT: SmartScan now runs automatically (default on) —
-                            // extraction now runs automatically when the OCR completes. Restore this
-                            // button to bring back manual triggering:
-                            /*
-                            BottomBarButton(stringResource(R.string.label_smartscan), { Icon(Icons.Default.Search, null, modifier = Modifier.size(22.dp)) }) {
-                                isEntityExtractMode = true
-                                if (detectedEntities.isEmpty() && !isExtractingEntities) {
-                                    isExtractingEntities = true
-                                    val cachedWords = instantWords?.sourceWords
-                                    val scanGeneration = entityScanGeneration
-                                    scope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                                        val bmp = screenshot ?: return@launch
-                                        val sourceWords = cachedWords ?: InstantOcrScanner.scan(context, bmp) { }?.words?.sourceWords
-                                        if (sourceWords == null) {
-                                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                                isExtractingEntities = false
-                                            }
-                                            return@launch
-                                        }
-                                        val entities = mutableListOf<SmartEntity>()
-
-                                        val urlRegex = android.util.Patterns.WEB_URL.toRegex()
-                                        val emailRegex = android.util.Patterns.EMAIL_ADDRESS.toRegex()
-                                        val phoneRegexLine = Regex("""(\+?[\d\s\-\(\).]{9,20})""")
-                                        val upiRegex = Regex("""[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}""")
-
-                                        // Group recognized words into lines; phone matches map into
-                                        // the line's union bounds by character ratio, like before.
-                                        sourceWords.groupBy { it.lineIndex }.forEach { (_, lineWords) ->
-                                            val lineText = lineWords.joinToString(" ") { it.text }
-                                            var left = Float.MAX_VALUE
-                                            var top = Float.MAX_VALUE
-                                            var right = -Float.MAX_VALUE
-                                            var bottom = -Float.MAX_VALUE
-                                            lineWords.forEach { w ->
-                                                left = min(left, w.bounds.cx - w.bounds.width / 2f)
-                                                top = min(top, w.bounds.cy - w.bounds.height / 2f)
-                                                right = max(right, w.bounds.cx + w.bounds.width / 2f)
-                                                bottom = max(bottom, w.bounds.cy + w.bounds.height / 2f)
-                                            }
-                                            phoneRegexLine.findAll(lineText).forEach { match ->
-                                                val phoneCandidate = match.value.trim()
-                                                if (phoneCandidate.count { it.isDigit() } >= 10) {
-                                                    val startIdx = match.range.first
-                                                    val endIdx = match.range.last + 1
-                                                    val ratioStart = startIdx.toFloat() / lineText.length.coerceAtLeast(1)
-                                                    val ratioEnd = endIdx.toFloat() / lineText.length.coerceAtLeast(1)
-                                                    val entityBounds = android.graphics.RectF(
-                                                        left + (ratioStart * (right - left)),
-                                                        top,
-                                                        left + (ratioEnd * (right - left)),
-                                                        bottom
-                                                    )
-                                                    entities.add(SmartEntity.Phone(phoneCandidate, entityBounds, context.getString(R.string.entity_type_phone)))
-                                                }
-                                            }
-                                        }
-                                        sourceWords.forEach { word ->
-                                            val txt = word.text.trim()
-                                            val wordBounds = android.graphics.RectF(
-                                                word.bounds.cx - word.bounds.width / 2f,
-                                                word.bounds.cy - word.bounds.height / 2f,
-                                                word.bounds.cx + word.bounds.width / 2f,
-                                                word.bounds.cy + word.bounds.height / 2f
-                                            )
-                                            if (emailRegex.matches(txt)) entities.add(SmartEntity.Email(txt, wordBounds, context.getString(R.string.entity_type_email)))
-                                            else if (upiRegex.matches(txt)) entities.add(SmartEntity.Upi(txt, wordBounds, context.getString(R.string.entity_type_upi)))
-                                            else if (urlRegex.matches(txt)) entities.add(SmartEntity.Url(txt, wordBounds, context.getString(R.string.entity_type_link)))
-                                        }
-                                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                            isExtractingEntities = false
-                                            // Discard results if the canvas image changed mid-scan.
-                                            if (scanGeneration == entityScanGeneration) {
-                                                detectedEntities = entities
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            */
-
-                            // Donate
-//                            BottomBarButton("Donate", { Icon(painterResource(id = com.akslabs.circletosearch.R.drawable.donation), null, modifier = Modifier.size(22.dp)) }) {
-//                                showDonateSheet = true
-//                            }
-
-                            // QR Scan
-                            BottomBarButton(stringResource(R.string.label_scan_qr), { Icon(Icons.Default.QrCode, null) }) {
-                                qrScanBitmap = selectedBitmap ?: screenshot
-                                showQrSheet = true
-                            }
-
-                            // Fullscreen
-                            BottomBarButton(stringResource(R.string.label_fullscreen), { Icon(Icons.Default.Fullscreen, null) }) {
-                                if (screenshot != null) {
-                                    // Full-image selection in screen space (view size, not bitmap size).
-                                    val viewW = if (canvasSizePx.width > 0) canvasSizePx.width else screenshot.width
-                                    val viewH = if (canvasSizePx.height > 0) canvasSizePx.height else screenshot.height
-                                    selectionRect = Rect(0, 0, viewW, viewH)
-                                    currentPathPoints.clear()
-                                    scope.launch { 
-                                        selectionAnim.snapTo(0f)
-                                        selectionAnim.animateTo(1f, tween(600))
-                                        selectedBitmap = screenshot
-                                        isSearching = true 
-                                    }
-                                }
-                            }
-
-                            // Gallery — pick an image and run Circle to Search on it
-                            BottomBarButton(stringResource(R.string.label_gallery), { Icon(painterResource(id = com.akslabs.circletosearch.R.drawable.ic_gallery), null, modifier = Modifier.size(22.dp)) }) {
-                                pickImageLauncher.launch(
-                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                )
-                            }
-
-                            // Screen — translate the current live screen (same as long-pressing
-                            // Translate). Only with accessibility: assistant permission can't
-                            // offer the live screen behavior, so the button is hidden.
-                            if (CircleToSearchAccessibilityService.instance != null) {
-                                BottomBarButton(stringResource(R.string.label_translate_screen), {
-                                    Icon(
-                                        painterResource(id = com.akslabs.circletosearch.R.drawable.translate_screen),
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }) {
-                                    translateLiveScreen()
-                                }
-                            }
-                        }
+//                         Row(
+//                             modifier = Modifier
+//                                 .fillMaxWidth()
+//                                 .padding(horizontal = 0.dp), // Maximize space for labels
+//                             horizontalArrangement = Arrangement.Center,
+//                             verticalAlignment = Alignment.Bottom
+//                         ) {
+//                             @Composable
+//                             fun BottomBarButton(
+//                                 label: String, 
+//                                 icon: @Composable () -> Unit, 
+//                                 enabled: Boolean = true,
+//                                 onClick: () -> Unit
+//                             ) {
+//                                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.BottomCenter) {
+//                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+//                                         FilledTonalIconButton(
+//                                             onClick = { 
+//                                                 haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+//                                                 onClick() 
+//                                             },
+//                                             enabled = enabled,
+//                                             modifier = Modifier.size(48.dp),
+//                                             colors = IconButtonDefaults.filledTonalIconButtonColors(
+//                                                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
+//                                                 contentColor = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+//                                                 disabledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+//                                                 disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+//                                             )
+//                                         ) { icon() }
+//                                         
+//                                         Spacer(modifier = Modifier.height(4.dp))
+//                                         
+//                                         Text(
+//                                             text = label, 
+//                                             style = MaterialTheme.typography.labelSmall.copy(
+//                                                 fontSize = 10.5.sp, 
+//                                                 lineHeight = 12.sp,
+//                                                 letterSpacing = (-0.4).sp,
+//                                                 fontWeight = FontWeight.Medium
+//                                             ), 
+//                                             color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f), 
+//                                             textAlign = TextAlign.Center, 
+//                                             maxLines = 1,
+//                                             overflow = TextOverflow.Visible,
+//                                             modifier = Modifier.padding(horizontal = 0.dp)
+//                                         )
+//                                     }
+//                                 }
+//                             }
+// 
+//                             // Camera — open the translator module's live camera directly.
+//                             // CLEAR_TASK so backing out of the camera returns here instead
+//                             // of any module screen left over from a previous session.
+//                             BottomBarButton(stringResource(R.string.label_camera), {
+//                                 Icon(painterResource(id = dev.davidv.translator.R.drawable.camera), null, modifier = Modifier.size(22.dp))
+//                             }) {
+//                                 // Clear any lingering translator overlay windows so a
+//                                 // stale touchable result/select window can't intercept
+//                                 // taps inside the camera screen.
+//                                 CircleToSearchAccessibilityService.instance?.closeTranslateOverlay()
+//                                 // Return target: closing the image result re-launches this
+//                                 // overlay (the original capture stays in BitmapRepository —
+//                                 // CLEAR_TASK destroys the old instance without finishing it).
+//                                 val cameraIntent = android.content.Intent(context, dev.davidv.translator.MainActivity::class.java)
+//                                     .putExtra(dev.davidv.translator.MainActivity.EXTRA_OPEN_LIVE_CAMERA, true)
+//                                     .putExtra(
+//                                         dev.davidv.translator.MainActivity.EXTRA_CALLER_COMPONENT,
+//                                         android.content.ComponentName(context, com.akslabs.circletosearch.OverlayActivity::class.java),
+//                                     )
+//                                     .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+//                                 runCatching {
+//                                     context.startActivity(cameraIntent)
+//                                 }.onFailure {
+//                                     android.widget.Toast.makeText(context, context.getString(R.string.toast_translate_unavailable), android.widget.Toast.LENGTH_SHORT).show()
+//                                 }
+//                             }
+// 
+//                             // More Apps
+// //                            BottomBarButton("More Apps", { Icon(Icons.Default.Apps, null) }) {
+// //                                showMoreAppsSheet = true
+// //                            }
+// 
+//                             // Pin
+// //                            val isPinEnabled = selectedBitmap != null
+// //                            BottomBarButton(
+// //                                label = "Pin",
+// //                                icon = { Icon(Icons.Default.PushPin, contentDescription = null, modifier = Modifier.size(22.dp)) },
+// //                                enabled = isPinEnabled
+// //                            ) {
+// //                                selectedBitmap?.let { bmp ->
+// //                                    CircleToSearchAccessibilityService.pinArea(bmp, selectionRect ?: android.graphics.Rect())
+// //                                    (context as? android.app.Activity)?.finish()
+// //                                }
+// //                            }
+// 
+//                             // Smart Entity Extractor — instant OCR over the screenshot using
+//                             // the translator module's recognition (no Tesseract, no re-OCR).
+//                             // COMMENTED OUT: SmartScan now runs automatically (default on) —
+//                             // extraction now runs automatically when the OCR completes. Restore this
+//                             // button to bring back manual triggering:
+//                             /*
+//                             BottomBarButton(stringResource(R.string.label_smartscan), { Icon(Icons.Default.Search, null, modifier = Modifier.size(22.dp)) }) {
+//                                 isEntityExtractMode = true
+//                                 if (detectedEntities.isEmpty() && !isExtractingEntities) {
+//                                     isExtractingEntities = true
+//                                     val cachedWords = instantWords?.sourceWords
+//                                     val scanGeneration = entityScanGeneration
+//                                     scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+//                                         val bmp = screenshot ?: return@launch
+//                                         val sourceWords = cachedWords ?: InstantOcrScanner.scan(context, bmp) { }?.words?.sourceWords
+//                                         if (sourceWords == null) {
+//                                             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+//                                                 isExtractingEntities = false
+//                                             }
+//                                             return@launch
+//                                         }
+//                                         val entities = mutableListOf<SmartEntity>()
+// 
+//                                         val urlRegex = android.util.Patterns.WEB_URL.toRegex()
+//                                         val emailRegex = android.util.Patterns.EMAIL_ADDRESS.toRegex()
+//                                         val phoneRegexLine = Regex("""(\+?[\d\s\-\(\).]{9,20})""")
+//                                         val upiRegex = Regex("""[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}""")
+// 
+//                                         // Group recognized words into lines; phone matches map into
+//                                         // the line's union bounds by character ratio, like before.
+//                                         sourceWords.groupBy { it.lineIndex }.forEach { (_, lineWords) ->
+//                                             val lineText = lineWords.joinToString(" ") { it.text }
+//                                             var left = Float.MAX_VALUE
+//                                             var top = Float.MAX_VALUE
+//                                             var right = -Float.MAX_VALUE
+//                                             var bottom = -Float.MAX_VALUE
+//                                             lineWords.forEach { w ->
+//                                                 left = min(left, w.bounds.cx - w.bounds.width / 2f)
+//                                                 top = min(top, w.bounds.cy - w.bounds.height / 2f)
+//                                                 right = max(right, w.bounds.cx + w.bounds.width / 2f)
+//                                                 bottom = max(bottom, w.bounds.cy + w.bounds.height / 2f)
+//                                             }
+//                                             phoneRegexLine.findAll(lineText).forEach { match ->
+//                                                 val phoneCandidate = match.value.trim()
+//                                                 if (phoneCandidate.count { it.isDigit() } >= 10) {
+//                                                     val startIdx = match.range.first
+//                                                     val endIdx = match.range.last + 1
+//                                                     val ratioStart = startIdx.toFloat() / lineText.length.coerceAtLeast(1)
+//                                                     val ratioEnd = endIdx.toFloat() / lineText.length.coerceAtLeast(1)
+//                                                     val entityBounds = android.graphics.RectF(
+//                                                         left + (ratioStart * (right - left)),
+//                                                         top,
+//                                                         left + (ratioEnd * (right - left)),
+//                                                         bottom
+//                                                     )
+//                                                     entities.add(SmartEntity.Phone(phoneCandidate, entityBounds, context.getString(R.string.entity_type_phone)))
+//                                                 }
+//                                             }
+//                                         }
+//                                         sourceWords.forEach { word ->
+//                                             val txt = word.text.trim()
+//                                             val wordBounds = android.graphics.RectF(
+//                                                 word.bounds.cx - word.bounds.width / 2f,
+//                                                 word.bounds.cy - word.bounds.height / 2f,
+//                                                 word.bounds.cx + word.bounds.width / 2f,
+//                                                 word.bounds.cy + word.bounds.height / 2f
+//                                             )
+//                                             if (emailRegex.matches(txt)) entities.add(SmartEntity.Email(txt, wordBounds, context.getString(R.string.entity_type_email)))
+//                                             else if (upiRegex.matches(txt)) entities.add(SmartEntity.Upi(txt, wordBounds, context.getString(R.string.entity_type_upi)))
+//                                             else if (urlRegex.matches(txt)) entities.add(SmartEntity.Url(txt, wordBounds, context.getString(R.string.entity_type_link)))
+//                                         }
+//                                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+//                                             isExtractingEntities = false
+//                                             // Discard results if the canvas image changed mid-scan.
+//                                             if (scanGeneration == entityScanGeneration) {
+//                                                 detectedEntities = entities
+//                                             }
+//                                         }
+//                                     }
+//                                 }
+//                             }
+//                             */
+// 
+//                             // Donate
+// //                            BottomBarButton("Donate", { Icon(painterResource(id = com.akslabs.circletosearch.R.drawable.donation), null, modifier = Modifier.size(22.dp)) }) {
+// //                                showDonateSheet = true
+// //                            }
+// 
+//                             // QR Scan
+//                             BottomBarButton(stringResource(R.string.label_scan_qr), { Icon(Icons.Default.QrCode, null) }) {
+//                                 qrScanBitmap = selectedBitmap ?: screenshot
+//                                 showQrSheet = true
+//                             }
+// 
+//                             // Fullscreen
+//                             BottomBarButton(stringResource(R.string.label_fullscreen), { Icon(Icons.Default.Fullscreen, null) }) {
+//                                 if (screenshot != null) {
+//                                     // Full-image selection in screen space (view size, not bitmap size).
+//                                     val viewW = if (canvasSizePx.width > 0) canvasSizePx.width else screenshot.width
+//                                     val viewH = if (canvasSizePx.height > 0) canvasSizePx.height else screenshot.height
+//                                     selectionRect = Rect(0, 0, viewW, viewH)
+//                                     currentPathPoints.clear()
+//                                     scope.launch { 
+//                                         selectionAnim.snapTo(0f)
+//                                         selectionAnim.animateTo(1f, tween(600))
+//                                         selectedBitmap = screenshot
+//                                         isSearching = true 
+//                                     }
+//                                 }
+//                             }
+// 
+//                             // Gallery — pick an image and run Circle to Search on it
+//                             BottomBarButton(stringResource(R.string.label_gallery), { Icon(painterResource(id = com.akslabs.circletosearch.R.drawable.ic_gallery), null, modifier = Modifier.size(22.dp)) }) {
+//                                 pickImageLauncher.launch(
+//                                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+//                                 )
+//                             }
+// 
+//                             // Screen — translate the current live screen (same as long-pressing
+//                             // Translate). Only with accessibility: assistant permission can't
+//                             // offer the live screen behavior, so the button is hidden.
+//                             if (CircleToSearchAccessibilityService.instance != null) {
+//                                 BottomBarButton(stringResource(R.string.label_translate_screen), {
+//                                     Icon(
+//                                         painterResource(id = com.akslabs.circletosearch.R.drawable.translate_screen),
+//                                         contentDescription = null,
+//                                         tint = MaterialTheme.colorScheme.onSurface
+//                                     )
+//                                 }) {
+//                                     translateLiveScreen()
+//                                 }
+//                             }
+//                         }
                     }
                 }
             }
